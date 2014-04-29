@@ -4,6 +4,9 @@
 HcSr04::HcSr04(int echoPin, int triggerPin) {
     _echoPin = echoPin;
     _triggerPin = triggerPin;
+
+    pinMode(_triggerPin, OUTPUT);
+    pinMode(_echoPin, INPUT);
 }
 
 
