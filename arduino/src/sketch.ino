@@ -1,64 +1,60 @@
-/*
-   Generic Robot with obstacle avoidance capabilities
-   Copyright (C) 2014  Joao Salavisa (joao.salavisa@gmail.com)
+#include "Servo.h"
+#include "Wire.h"
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
+#include "Hmc5883l.h"
+#include "L298n.h"
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+#define DEBUG 1
+#define RUNNING_TIME 8000
+#define TOP_SPEED 255
 
-   You should have readd a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Motor Control pins
+#define ENABLE_A 11
+#define MOTOR_A1 8
+#define MOTOR_A2 12
 
-#include <Wire.h>
+#define ENABLE_B 3
+#define MOTOR_B1 5
+#define MOTOR_B2 7
 
-#define address 0x1E 
+
+#define SERVO_PAN   9
+#define SERVO_TILT 10
+
+
+Servo panServo;
+Servo tiltServo;
+
+//
+
+int time = 0;
+
+char serialBuffer[4];
 
 void setup() {
-    Serial.begin(9600);
-
     Wire.begin();
-    Wire.beginTransmission(address); //open communication with HMC5883
-    Wire.write(0x02); //select mode register
-    Wire.write(0x00); //continuous measurement mode
-    Wire.endTransmission();
-
-    Serial.println("Setup completed");
+    Serial.begin(115200);
+    
+    panServo.attach(SERVO_PAN);
+    tiltServo.attach(SERVO_TILT);
+    
+     panServo.write(90);
+     tiltServo.write(180);
 }
 
 void loop() {
-  int x, y, z;
 
-  // Initiate communications with compass
-  Wire.beginTransmission(address);
-  Wire.write(byte(0x03));       // Send request to X MSB register
-  Wire.endTransmission();
-
-  Wire.requestFrom(address, 6);    // Request 6 bytes; 2 bytes per axis
-  if(Wire.available() <=6) {    // If 6 bytes available
-    x = Wire.read() << 8 | Wire.read();
-    z = Wire.read() << 8 | Wire.read();
-    y = Wire.read() << 8 | Wire.read();
-  }
-  
-  // Print raw values
-
-  float heading = atan2(y, x);
-  if(heading < 0) 
-      heading += 2*PI;
+    if (Serial.available() >= 4) {
+        Serial.readBytesUntil('#', serialBuffer, 4);
+        Serial.println("Got 4 bytes");
+    }
 
 
-  float headingDegrees = heading * 180/M_PI; 
-  Serial.print("  Heading: ");
-  Serial.println(headingDegrees);
-
-  delay(500);
+    if (serialBuffer[0] == 'S') {
+        unsigned char panServoAngle = serialBuffer[1];
+        unsigned char tiltServoAngle = serialBuffer[2];
+        panServo.write(panServoAngle);
+        tiltServo.write(tiltServoAngle);
+        serialBuffer[0] = '#';
+    }
 }
-
-

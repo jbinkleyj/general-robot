@@ -42,12 +42,12 @@ void L298n::setMotorsSpeed(int percentage) {
 }
 
 void L298n::setMotorASpeed(int percentage) {
-    int speed = (TOP_SPEED * percentage) / 100;
+    int speed = percentage;
     analogWrite(_enable_motor_A_pin, speed);
 }
 
 void L298n::setMotorBSpeed(int percentage) {
-    int speed = (TOP_SPEED * percentage) / 100;
+    int speed = percentage;
     analogWrite(_enable_motor_B_pin, speed);
 }
 
